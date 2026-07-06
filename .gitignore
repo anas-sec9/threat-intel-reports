@@ -1,0 +1,45 @@
+# ============================================================
+#  CRITICAL: never commit a malware sample to a public repo.
+#  Reports reference samples by SHA-256 hash only.
+# ============================================================
+*.exe
+*.dll
+*.bin
+*.sample
+*.msi
+*.hta
+*.sct
+*.vbs
+*.jar
+*.scr
+*.cpl
+*.7z
+*.zip
+*.rar
+*.gz
+*.iso
+*.img
+*.dmp
+samples/
+bin/
+unpacked/
+
+# Copyrighted course material - never commit
+*.pdf
+books/
+md/
+
+# Private notes / dumps
+*dump*
+_private/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.tmp_*
+*.tmp
+.vscode/
+.idea/
