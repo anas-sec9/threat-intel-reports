@@ -47,4 +47,4 @@ _More as they're published. Coverage tracked against the ATT&CK Navigator._
 
 ## About
 
-Threat intelligence & detection engineering by **Anas** — building toward the SANS SCyWF Threat Management role (Threat Intelligence Analyst / Threat Hunter). Companion detection-engineering repo: the detection library.
+Threat intelligence & detection engineering by **Anas-SEC** — building toward the SANS SCyWF Threat Management role (Threat Intelligence Analyst / Threat Hunter). Companion detection-engineering repo: the detection library.
