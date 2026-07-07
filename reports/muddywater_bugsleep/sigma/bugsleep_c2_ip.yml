@@ -1,0 +1,26 @@
+title: BugSleep C2 - Outbound Connection to MuddyWater IP 91.235.234.202
+id: 8d3f80a8-edb6-46b1-aa0a-0aa38a7aa422
+status: experimental
+description: >
+    Detects any outbound connection to 91.235.234.202, the hardcoded C2 used by the
+    analyzed BugSleep sample. High signal because BugSleep reaches this IP directly
+    with no preceding DNS resolution (hardcoded IP), and typically from an injected
+    browser process (msedge.exe).
+references:
+    - https://github.com/anas-sec9/threat-intel-reports/tree/main/reports/muddywater_bugsleep
+author: Anas
+date: 2026-07-07
+tags:
+    - attack.command-and-control
+    - attack.t1571
+    - attack.t1095
+logsource:
+    category: network_connection
+    product: windows
+detection:
+    selection:
+        DestinationIp: '91.235.234.202'
+    condition: selection
+falsepositives:
+    - None expected for this IP. Retire/adjust as infrastructure rotates.
+level: high

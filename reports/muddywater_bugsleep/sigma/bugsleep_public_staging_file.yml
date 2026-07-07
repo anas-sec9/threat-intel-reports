@@ -1,0 +1,26 @@
+title: BugSleep C2 Staging File in Public Folder (a.txt)
+id: 34c1d84f-123a-4171-9e2a-a6adb0c4a259
+status: experimental
+description: >
+    BugSleep reads/writes C2 command data through C:\Users\Public\a.txt. Creation of
+    a.txt directly under the Public profile root is unusual and, combined with the
+    other signals, indicates BugSleep activity. Medium on its own; high when correlated
+    with the injection or C2 rules.
+references:
+    - https://github.com/anas-sec9/threat-intel-reports/tree/main/reports/muddywater_bugsleep
+author: Anas
+date: 2026-07-07
+tags:
+    - attack.command-and-control
+    - attack.collection
+    - attack.t1074.001
+logsource:
+    category: file_event
+    product: windows
+detection:
+    selection:
+        TargetFilename|endswith: '\Users\Public\a.txt'
+    condition: selection
+falsepositives:
+    - Rare. Some tools drop scratch files in Public; validate the writing process.
+level: medium

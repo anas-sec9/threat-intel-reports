@@ -1,0 +1,25 @@
+# BugSleep (MuddyWater) network detections
+# Author: Anas | 2026-07-07 | TLP:CLEAR
+# Sample: 73c677dd3b264e7eb80e26e78ac9df1dba30915b5ce3b1bc1c83db52b9c6b30e
+#
+# Observed: hardcoded C2 91.235.234.202 over TCP/443, reached with NO prior DNS
+# lookup, custom protocol (not TLS - no valid handshake seen). Beacon ~60-80s.
+# SID range 9100000-9100999 reserved for this CTI repo (local/experimental).
+
+# 1) Any traffic to the C2 IP - highest confidence IOC.
+alert ip $HOME_NET any -> 91.235.234.202 any ( \
+    msg:"CTI BugSleep MuddyWater C2 - traffic to 91.235.234.202"; \
+    reference:md5,none; \
+    threshold:type limit, track by_src, count 1, seconds 300; \
+    classtype:trojan-activity; sid:9100001; rev:1; )
+
+# 2) Established beacon to C2 on 443 that is NOT TLS - custom protocol over the
+#    HTTPS port. Fires when app-layer proto on dst 443 is not tls/ssl.
+alert tcp $HOME_NET any -> 91.235.234.202 443 ( \
+    msg:"CTI BugSleep MuddyWater C2 beacon - non-TLS traffic on TCP/443"; \
+    flow:established,to_server; \
+    app-layer-protocol:!tls; \
+    classtype:trojan-activity; sid:9100002; rev:1; )
+
+# NOTE: a content-based signature on the beacon payload (base64 framing over raw
+# socket) requires Tier 4 protocol reversing - tracked as future work.

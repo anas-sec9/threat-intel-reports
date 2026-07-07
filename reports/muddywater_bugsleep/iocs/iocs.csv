@@ -1,0 +1,9 @@
+indicator,type,context,confidence
+73c677dd3b264e7eb80e26e78ac9df1dba30915b5ce3b1bc1c83db52b9c6b30e,sha256,analyzed BugSleep sample,high
+5d30c32f609687ca146ba5bde4bc6d09,imphash,import-hash pivot for related samples,high
+91.235.234.202,ipv4,C2 (hardcoded; reached with no DNS),high
+91.235.234.202:443,c2,beacon over TCP/443 custom non-TLS protocol ~60-80s,high
+C:\ProgramData\PackageManager\PackageManager.exe,filepath,self-copy for persistence (masquerade),high
+PackageManager.exe,filename,dropped persistence binary,high
+C:\Users\Public\a.txt,filepath,C2 command staging / output file,high
+msedge.exe,injection_target,process injection host to blend C2 into browser traffic,high

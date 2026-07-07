@@ -1,0 +1,29 @@
+title: Remote Thread Created in msedge.exe by Non-Edge Process (BugSleep-style injection)
+id: a6f43b27-f606-49e1-b628-b6663dad5481
+status: experimental
+description: >
+    BugSleep injects its payload into msedge.exe to hide C2 in normal browser traffic.
+    A CreateRemoteThread (Sysmon EID 8) targeting msedge.exe from any process that is
+    NOT itself Edge is highly abnormal. This is behavioral - it catches the injection
+    technique regardless of the specific sample or C2, so it survives variant drift.
+references:
+    - https://github.com/anas-sec9/threat-intel-reports/tree/main/reports/muddywater_bugsleep
+author: Anas
+date: 2026-07-07
+tags:
+    - attack.defense-evasion
+    - attack.privilege-escalation
+    - attack.t1055
+    - attack.t1055.003
+logsource:
+    product: windows
+    category: create_remote_thread
+detection:
+    selection:
+        TargetImage|endswith: '\msedge.exe'
+    filter_edge:
+        SourceImage|endswith: '\msedge.exe'
+    condition: selection and not filter_edge
+falsepositives:
+    - Some security/EDR products inject into browsers; baseline and allow-list those SourceImages.
+level: high
