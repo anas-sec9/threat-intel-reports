@@ -32,10 +32,14 @@ rule BugSleep_MuddyWater_file
         $p5 = "Onedrive.exe"   ascii wide nocase
         $p6 = "svchost.exe"    ascii wide nocase
         $p7 = "powershell.exe" ascii wide nocase
+        // subtract-6 config/payload decrypt loop (RVA ~0x24af0), unencrypted stub:
+        //   MOVDQU XMM0,[RAX+RSI] / PSUBB XMM0,XMM6 / MOVDQU [RAX+RSI],XMM0 / ADD RAX,10 / CMP RAX,30 / JL
+        // durable code signature - survives config/C2 changes.
+        $decrypt = { F3 0F 6F 04 30 66 0F F8 C6 F3 0F 7F 04 30 48 83 C0 10 48 83 F8 30 7C E8 }
     condition:
         uint16(0) == 0x5A4D
         and filesize < 400KB
-        and ( pe.imphash() == "5d30c32f609687ca146ba5bde4bc6d09" or 5 of ($p*) )
+        and ( $decrypt or pe.imphash() == "5d30c32f609687ca146ba5bde4bc6d09" or 5 of ($p*) )
 }
 
 rule BugSleep_MuddyWater_memory
@@ -54,6 +58,7 @@ rule BugSleep_MuddyWater_memory
         $per2 = "\\ProgramData\\PackageManager\\"            ascii wide nocase
         $stg  = "\\Users\\Public\\a.txt"                     ascii wide nocase
         $inj  = "\\Microsoft\\Edge\\Application\\msedge.exe" ascii wide nocase
+        $mtx  = "PackageManager"                             wide fullword
     condition:
         3 of them
 }

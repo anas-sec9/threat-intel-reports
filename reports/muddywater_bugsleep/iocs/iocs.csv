@@ -5,5 +5,6 @@ indicator,type,context,confidence
 91.235.234.202:443,c2,beacon over TCP/443 custom non-TLS protocol ~60-80s,high
 C:\ProgramData\PackageManager\PackageManager.exe,filepath,self-copy for persistence (masquerade),high
 PackageManager.exe,filename,dropped persistence binary,high
+PackageManager,mutex,single-instance guard (CreateMutexW session-local),high
 C:\Users\Public\a.txt,filepath,C2 command staging / output file,high
 msedge.exe,injection_target,process injection host to blend C2 into browser traffic,high
