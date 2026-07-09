@@ -1,64 +1,53 @@
 import "pe"
 
 /*
-    BugSleep (MuddyWater) YARA rules
-    Author: Anas  |  Date: 2026-07-07  |  TLP:CLEAR
+    BugSleep (MuddyWater) YARA — tuned for PRECISION.
+    Author: Anas  |  Date: 2026-07-08  |  TLP:CLEAR
     Sample: 73c677dd3b264e7eb80e26e78ac9df1dba30915b5ce3b1bc1c83db52b9c6b30e
 
-    Two rules, two surfaces:
-      - _file   : the on-disk sample. Config is ENCRYPTED on disk, so this keys on
-                  the plaintext process hit-list + imphash (the durable, unencrypted traits).
-      - _memory : the DECRYPTED payload after injection (process dump / live memory).
-                  Keys on config strings that only appear once decrypted.
+    Design note: the ONLY signal here strong enough to stand on its own is the
+    subtract-6 decrypt loop (specific code). Generic strings - process names,
+    msedge / PackageManager paths - are deliberately NOT used as standalone
+    matches, because on their own they hit huge numbers of benign and unrelated
+    files. A rule is only as precise as its loosest standalone condition.
 */
 
 rule BugSleep_MuddyWater_file
 {
     meta:
-        description = "MuddyWater BugSleep backdoor - on-disk PE (config encrypted; keys on hit-list + imphash)"
+        description = "MuddyWater BugSleep on-disk PE - keys on the subtract-6 decrypt loop (specific code, not generic strings)"
         author      = "Anas"
-        date        = "2026-07-07"
+        date        = "2026-07-08"
         reference   = "73c677dd3b264e7eb80e26e78ac9df1dba30915b5ce3b1bc1c83db52b9c6b30e"
-        imphash     = "5d30c32f609687ca146ba5bde4bc6d09"
+        imphash     = "5d30c32f609687ca146ba5bde4bc6d09"   // pivot only - not a match condition
         actor       = "MuddyWater"
         tlp         = "CLEAR"
     strings:
-        // injection / masquerade target list - plaintext even in the encrypted-config sample.
-        // the combination of these seven in one small (<400KB) PE is the discriminator.
-        $p1 = "msedge.exe"     ascii wide nocase
-        $p2 = "opera.exe"      ascii wide nocase
-        $p3 = "chrome.exe"     ascii wide nocase
-        $p4 = "anydesk.exe"    ascii wide nocase
-        $p5 = "Onedrive.exe"   ascii wide nocase
-        $p6 = "svchost.exe"    ascii wide nocase
-        $p7 = "powershell.exe" ascii wide nocase
-        // subtract-6 config/payload decrypt loop (RVA ~0x24af0), unencrypted stub:
-        //   MOVDQU XMM0,[RAX+RSI] / PSUBB XMM0,XMM6 / MOVDQU [RAX+RSI],XMM0 / ADD RAX,10 / CMP RAX,30 / JL
-        // durable code signature - survives config/C2 changes.
-        $decrypt = { F3 0F 6F 04 30 66 0F F8 C6 F3 0F 7F 04 30 48 83 C0 10 48 83 F8 30 7C E8 }
+        // Subtract-6 config/payload decrypt loop (RVA ~0x24af0), in the unencrypted stub:
+        //   MOVDQU XMM0,[RAX+RSI] / PSUBB XMM0,XMM6 / MOVDQU [RAX+RSI],XMM0 / ADD RAX,0x10 / CMP RAX,0x30 / JL
+        // PSUBB (66 0F F8) inside an SSE copy loop with these exact bounds is distinctive to BugSleep.
+        // Only the JL displacement is wildcarded, so it survives a recompile that shifts the loop.
+        $decrypt = { F3 0F 6F 04 30 66 0F F8 C6 F3 0F 7F 04 30 48 83 C0 10 48 83 F8 30 7C ?? }
     condition:
         uint16(0) == 0x5A4D
         and filesize < 400KB
-        and ( $decrypt or pe.imphash() == "5d30c32f609687ca146ba5bde4bc6d09" or 5 of ($p*) )
+        and $decrypt
 }
 
 rule BugSleep_MuddyWater_memory
 {
     meta:
-        description = "MuddyWater BugSleep - DECRYPTED config in memory / process dump (e.g. injected msedge region)"
+        description = "MuddyWater BugSleep decrypted config in memory / process dump - run on memory, NOT disk"
         author      = "Anas"
-        date        = "2026-07-07"
-        reference   = "decrypted config recovered from injected msedge.exe region via HollowsHunter"
+        date        = "2026-07-08"
+        reference   = "decrypted config recovered from an injected msedge.exe region"
         actor       = "MuddyWater"
         tlp         = "CLEAR"
-        note        = "Run against process memory / dumps, not disk. On-disk sample will NOT match (config encrypted)."
+        note        = "Anchored on the unique C2, or the PackageManager-folder + Public\\a.txt path PAIR. Single generic strings never match alone."
     strings:
-        $c2   = "91.235.234.202"                             ascii wide
-        $per1 = "packagemanager.exe"                         ascii wide nocase
-        $per2 = "\\ProgramData\\PackageManager\\"            ascii wide nocase
-        $stg  = "\\Users\\Public\\a.txt"                     ascii wide nocase
-        $inj  = "\\Microsoft\\Edge\\Application\\msedge.exe" ascii wide nocase
-        $mtx  = "PackageManager"                             wide fullword
+        $c2     = "91.235.234.202"                  ascii wide            // unique - strongest anchor
+        $folder = "\\ProgramData\\PackageManager\\"  ascii wide nocase
+        $stg    = "\\Users\\Public\\a.txt"           ascii wide nocase
     condition:
-        3 of them
+        $c2 or ($folder and $stg)
 }
