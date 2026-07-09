@@ -33,6 +33,14 @@ md/
 *dump*
 _private/
 
+# Narrative reports & write-ups live on Medium, not GitHub.
+# Kept locally as drafts; the repo ships only rules + IOCs.
+reports/**/writeup-*.md
+reports/**/ANALYSIS_PLAN.md
+reports/**/validation/VALIDATION_REPORT.md
+reports/**/validation/screenshots-checklist.md
+reports/**/validation/screenshots/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
